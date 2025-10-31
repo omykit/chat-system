@@ -1,0 +1,41 @@
+name: Java CI - build & package
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Compile sources
+      run: |
+        mkdir -p out
+        javac -d out src/com/chat/*.java
+
+    - name: Package runnable JAR
+      run: |
+        jar cfe chat_system.jar com.chat.Main -C out .
+
+    - name: Run a quick smoke test (non-interactive)
+      run: |
+        echo "Smoke: listing classes in jar"
+        jar tf chat_system.jar | head -n 40 || true
+
+    - name: Upload JAR artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: chat-system-jar
+        path: chat_system.jar
