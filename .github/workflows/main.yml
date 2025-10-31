@@ -5,6 +5,8 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  # allow manual runs from the Actions UI
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -20,10 +22,26 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
 
+    - name: Show repository tree (diagnostic)
+      run: |
+        echo '=== ls -la repo root ==='
+        ls -la
+        echo '=== ls -la src ==='
+        ls -la src || true
+        echo '=== find . -name "*.java" ==='
+        find . -name "*.java" -print || true
+
     - name: Compile sources
       run: |
         mkdir -p out
-        javac -d out src/com/chat/*.java
+        files=$(find src -name '*.java' | tr '\n' ' ')
+        if [ -z "$files" ]; then
+          echo 'No Java source files found under src/ - aborting.'
+          ls -R
+          exit 1
+        fi
+        echo "Compiling: $files"
+        javac -d out $files
 
     - name: Package runnable JAR
       run: |
