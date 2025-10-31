@@ -31,12 +31,13 @@ jobs:
         echo '=== find . -name "*.java" ==='
         find . -name "*.java" -print || true
 
-    - name: Compile sources
+    - name: Compile sources (find anywhere)
       run: |
         mkdir -p out
-        files=$(find src -name '*.java' | tr '\n' ' ')
+        # Find all .java files in the repository, excluding workflow and generated folders
+        files=$(find . -name '*.java' -not -path './.github/*' -not -path './out/*' -print | tr '\n' ' ')
         if [ -z "$files" ]; then
-          echo 'No Java source files found under src/ - aborting.'
+          echo 'No Java source files found in the repository - aborting.'
           ls -R
           exit 1
         fi
